@@ -1,4 +1,47 @@
-.placeorder{
+
+.modal-overlay{
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #00000090;
+    display: grid;
+    align-items: center; /* Center content vertically */
+    justify-items: center; /* Center content horizontally */
+}
+
+.modal-content{
+    place-self: center;
+    width: max(23vw,330px);
+    color: #808080;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    padding: 25px 30px;
+    border-radius: 8px;
+    font-size: 14px;
+    animation: fadeIn 0.5s;
+}
+
+.net-banking-image img{
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow:0 4px 8px tomato ;
+    transition: transform 0.3s; 
+}
+
+.net-banking-image img:hover{
+    transform: scale(1.05);
+}
+
+
+
+.place-order{
     display: flex;
     align-items: start;
     justify-content: space-between;
@@ -7,18 +50,18 @@
 
 }
 
-.placeorder-left{
+.place-order-left{
     width: 100%;
     max-width: max(30%,500px);
 }
 
-.placeorder-left .title{
+.place-order-left .title{
         font-size: 30px;
         font-weight: 600;
         margin-bottom: 50px;
 }
 
-.placeorder-left input{
+.place-order-left input{
     margin-bottom: 15px;
     width: 100%;
     padding: 10px;
@@ -28,17 +71,17 @@
 
 }
 
-.placeorder-left .multi-feilds{
+.place-order-left .multi-feilds{
     display: flex;
     gap: 10px;
 }
 
-.placeorder-right{
+.place-order-right{
     width: 100%;
     max-width:max(40%,500px) ;
 }
 
-.placeorder .cart-total button{
+.place-order .cart-total button{
     margin-top: 30px;
 }
 
@@ -85,6 +128,15 @@
     outline-color: tomato;
 }
 
+.place-order-right button{
+    border:none ;
+    color: white;
+    background-color: tomato;
+    width: max(15vw,200px);
+    padding: 12px 0px;
+    border-radius: 4px;
+    cursor: pointer;
+}
 .split-payment button{
     margin-top: 10px;
     justify-content: space-between;
@@ -98,6 +150,84 @@
 }
 
 .split-payment input{
+    margin-bottom: 15px;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #c5c5c5;
+    border-radius: 4px;
+    outline-color: tomato;
+}
+
+/* Radio Button Container */
+.payment-methods {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Hide Default Radio Button */
+  .payment-methods input[type="radio"] {
+    display: flex
+  }
+  
+  /* Styled Label for Radio Button */
+  .payment-methods label {
+    margin-bottom: 15px;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #c5c5c5;
+    border-radius: 4px;
+    outline-color: tomato;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.3s, border-color 0.3s;
+  }
+  
+  /* Hover Effect */
+  .payment-methods label:hover {
+    background-color: #f9f9f9;
+    border-color: tomato;
+  }
+  
+  /* Active/Selected State */
+  .payment-methods input[type="radio"]:checked + label {
+    background-color: tomato;
+    color: white;
+    border-color: tomato;
+  }
+  
+.modal-footer button{
+    margin-top: 10px;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #eaeaea;
+    width: max(15vw,200px);
+    padding: 12px 0px;
+    border-radius: 4px;
+    outline-color: tomato;
+    color:#555;
+    cursor: pointer;
+  }
+
+.modal-footer button:hover{
+    border:none ;
+    color: white;
+    background-color: tomato;
+    width: max(15vw,200px);
+    padding: 12px 0px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.card-details input[type="text"]  {
+    margin-bottom: 15px;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #c5c5c5;
+    border-radius: 4px;
+    outline-color: tomato;
+}
+
+.card-details input[type="password"]  {
     margin-bottom: 15px;
     width: 100%;
     padding: 10px;

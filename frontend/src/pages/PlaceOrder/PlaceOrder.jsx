@@ -1,11 +1,12 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useState } from 'react'
 import './PlaceOrder.css'
 import { StoreContext } from '../../components/context/StoreContext';
+import { assets } from '../../assets/assets';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 
 const PlaceOrder = () => {
   const {getTotalCartAmount, token, food_list, cartItems, url} = useContext(StoreContext);
+  useContext(StoreContext);
   const [currency, setCurrency] = useState('INR');
   const [referralCode, setReferralCode] = useState('');
   const [referralDiscount, setReferralDiscount] = useState(0);
@@ -13,6 +14,50 @@ const PlaceOrder = () => {
   const [splitCode, setSplitCode] = useState('');
   const [splitPayments, setSplitPayments] = useState([]);
   const [newParticipant, setNewParticipant] = useState('');
+
+  const [data, setData] = useState({
+    firstName:"",
+    lastName:"",
+    email:"",
+    street:"",
+    city:"",
+    state:"",
+    zipcode:"",
+    country:"",
+    phone:""
+  });
+
+  const onChangeHandler = (event) =>{
+    const name = event.target.name;
+    const value = event.target.value;
+    setData(data =>({...data,[name]:value}))
+  }
+
+  const placeOrder = async (event) =>{
+    event.preventDefault();
+    let orderItems = [];
+    food_list.map((item)=>{
+      if(cartItems[item._id]>0){
+        let itemInfo = item;
+        itemInfo["quantity"] = cartItems[item._id];
+        orderItems.push(itemInfo);
+      }
+    })
+    let orderData = {
+      address:data,
+      items:orderItems,
+      amount:getTotalCartAmount()+2,
+    }
+ 
+    let response = await axios.post(url+'/api/order/place', orderData,{headers:{token}})
+    if(response.data.success){
+      const {session_url} = response.data;
+      window.location.replace(session_url);
+    }
+    else{
+      alert('Error')
+    }
+  }
 
   const currencyRates = {
     INR: 1, // Base currency
@@ -25,7 +70,6 @@ const PlaceOrder = () => {
     USD: '$',
     EUR: '€',
   };
-
   const handleApplyReferralCode = () => {
     if (referralCode === 'FRIEND50' && !isCodeApplied) {
       setReferralDiscount(50);
@@ -49,67 +93,17 @@ const PlaceOrder = () => {
 
   const updateAmount = (index, amount) => {
     const updatedPayments = splitPayments.map((p, i) =>
-      i === index ? { ...p, amount: parseFloat(amount) } : p
+      i === index ? { ...p, amount: parseFloat(amount) || 0 } : p
     );
     setSplitPayments(updatedPayments);
   };
 
-
-  const [data, setData] = useState({
-    firstName:"",
-    lastName:"",
-    email:"",
-    street:"",
-    city:"",
-    state:"",
-    zipcode:"",
-    country:"",
-    phone:""
-  });
-
-  const onChangeHandler = (event) =>{
-    const name = event.target.name;
-    const value = event.target.value;
-    setData(data =>({...data,[name]:value}))
-  }
-
-  const placeOrder = async (event) =>{
-    event.preventDefault();
-    let orderItems = [];
-    food_list.map((item, index)=>{
-      if(cartItems[item._id]>0){
-        let itemInfo = item;
-        itemInfo["quantity"] = cartItems[item._id];
-        orderItems.push(itemInfo);
-      }
-    })
-    let orderData = {
-      address:data,
-      items:orderItems,
-      amount:getTotalCartAmount()+2,
-    }
-
-    let response = await axios.post(url+'/api/order/place', orderData,{headers:{token}})
-    if(response.data.success){
-      const {session_url} = response.data;
-      window.location.replace(session_url);
-    }
-    else{
-      alert('Error')
-    }
-  }
-
-  const navigate = useNavigate();
-
-  useEffect(()=>{
-    if(!token){
-      navigate('/cart')
-    }else if(getTotalCartAmount()===0){
-      navigate('/cart')
-    }
-  },[token])
+  const totalCartAmount = getTotalCartAmount();
+  const deliveryFee = totalCartAmount === 0 ? 0 : 2;
+  const finalTotal = totalCartAmount + deliveryFee - referralDiscount;
 
   const convertAmount = (amount) => (amount * currencyRates[currency]).toFixed(2);
+
 
   return (
     <React.Fragment>
@@ -135,7 +129,6 @@ const PlaceOrder = () => {
             <label htmlFor="delivery-time">Scheduled Order Time</label>
             <input type="time" id="delivery-time" name="delivery-time" />
           </div>
-
           <div className="referral-code">
             <label htmlFor="referral">Referral Code</label>
             <input
@@ -145,14 +138,17 @@ const PlaceOrder = () => {
               value={referralCode}
               onChange={(e) => setReferralCode(e.target.value)}
               disabled={isCodeApplied}
-              />
-
-              <button type="button" onClick={handleApplyReferralCode} disabled={isCodeApplied}>
+            />
+            
+            <button type="button" onClick={handleApplyReferralCode} disabled={isCodeApplied}>
               Apply Code
-             </button>
+            </button>
+          </div>
+
+          
 
       </div>
-      </div>
+      
 
       <div className="place-order-right">
       <div className="cart-total">
@@ -160,12 +156,12 @@ const PlaceOrder = () => {
           <div>
           <div className="cart-total-detail">
               <p>Subtotal</p>
+              <p>{currencySymbols[currency]}{convertAmount(totalCartAmount)}</p>
               <p>${getTotalCartAmount()}</p>
             </div>
-            <hr />
-            <div className="cart-total-detail">
-              <p>Delivery Fee</p>
-              <p>{currencySymbols[currency]}{convertAmount(deliveryFee)}</p>
+            <div className="cart-total-details">
+                <p>Delivery Fee</p>
+                <p>{currencySymbols[currency]}{convertAmount(deliveryFee)}</p>
               </div>
               {referralDiscount > 0 && (
                 <div className="cart-total-details">
@@ -174,10 +170,7 @@ const PlaceOrder = () => {
                 </div>
               )}
               <hr />
-              <p>${getTotalCartAmount()===0?0:2}</p>
-            </div>
-            <hr />
-            <div className="currency-selection">
+              <div className="currency-selection">
                 <label htmlFor="currency">Choose Currency:</label>
                 <select
                   id="currency"
@@ -189,36 +182,36 @@ const PlaceOrder = () => {
                   <option value="EUR">EUR - Euro</option>
                 </select>
               </div>
-              <div className="split-payment">
-            <h2>Split  Payment</h2>
-            <button type="button" onClick={generateSplitCode}>Generate Split Code</button>
-            {splitCode && <p>Share this code with friends: <b>{splitCode}</b></p>}
-            
-            <input
-              type="text"
-              placeholder="Add participant"
-              value={newParticipant}
-              onChange={(e) => setNewParticipant(e.target.value)}
-            />
-            <button type="button" onClick={addParticipant}>Add Participant</button>
-            
-            {splitPayments.length > 0 && (
-              <div className="split-payments-list">
-                <h4>Split Payments</h4>
-                {splitPayments.map((participant, index) => (
-                  <div key={index} className="split-participant">
-                    <span>{participant.name}:</span>
-                    <input
-                      type="number"
-                      placeholder="Amount"
-                      value={participant.amount}
-                      onChange={(e) => updateAmount(index, e.target.value)}
-                    />
-                  </div>
-                ))}
               </div>
-            )}
-          </div>
+              <div className="split-payment">
+                <h2>Split Payment</h2>
+                <button type="button" onClick={generateSplitCode}>Generate Split Code</button>
+                {splitCode && <p>Share this code with friends: <b>{splitCode}</b></p>}
+                <input
+                  type="text"
+                  placeholder="Add participant"
+                  value={newParticipant}
+                  onChange={(e) => setNewParticipant(e.target.value)}
+                />
+                <button type="button" onClick={addParticipant}>Add Participant</button>
+                {splitPayments.length > 0 && (
+                  <div className="split-payments-list">
+                    <h4>Split Payments</h4>
+                    {splitPayments.map((participant, index) => (
+                      <div key={index} className="split-participant">
+                        <span>{participant.name}:</span>
+                        <input
+                          type="number"
+                          placeholder="Amount"
+                          value={participant.amount}
+                          onChange={(e) => updateAmount(index, e.target.value)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
             <div className="cart-total-detail">
               <b>Total</b>
               <b>${getTotalCartAmount()===0?0:getTotalCartAmount()+2}</b>
@@ -226,10 +219,9 @@ const PlaceOrder = () => {
           </div>
           <button type='submit'>PROCEED TO PAYMENT</button>
         </div>
-      
     </form>
     </React.Fragment>
-  )
+  );
 }
 
 export default PlaceOrder
